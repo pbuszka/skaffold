@@ -49,12 +49,19 @@ func Retrieve(cfg *latest.KanikoBuild) BuildContextSource {
 
 func podTemplate(cfg *latest.KanikoBuild, args []string) *v1.Pod {
 	return &v1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: "kaniko-",
-			Labels:       map[string]string{"skaffold-kaniko": "skaffold-kaniko"},
-			Namespace:    cfg.Namespace,
-		},
-		Spec: v1.PodSpec{
+			ObjectMeta: metav1.ObjectMeta{
+				GenerateName: "kaniko-",
+				Labels:       map[string]string{"skaffold-kaniko": "skaffold-kaniko"},
+				Namespace:    cfg.Namespace,
+			},
+			Spec: v1.PodSpec{
+				Tolerations: []v1.Toleration{ {
+					Key:      "kaniko-builder-taint",
+					Operator: v1.TolerationOpExists,
+					Effect:   v1.TaintEffectNoSchedule,
+				},
+			},
+			NodeSelector: map[string]string{"kaniko-builder-label": "mark"},
 			Containers: []v1.Container{
 				{
 					Name:            constants.DefaultKanikoContainerName,
